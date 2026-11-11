@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN" theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title data-i18n="manifest.app.name">图片智能排版导出 PDF / 图片</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Top Application Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-badge">
+        <img src="logo.png" alt="Logo" />
+      </div>
+      <div class="brand-group">
+        <h1 class="app-title" data-i18n="ui.title">图片智能排版工作台</h1>
+        <span id="headerStatsBadge" class="stats-pill">共 0 张</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <select id="localeSelect" class="form-control locale-select" title="Language / 语言"></select>
+
+      <button id="btnResetConfig" class="btn btn-default" data-i18n-title="ui.reset_config">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+        </svg>
+        <span data-i18n="ui.reset_config">重置参数</span>
+      </button>
+
+      <button id="btnRefresh" class="btn btn-default" data-i18n-title="ui.refresh">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        <span data-i18n="ui.refresh">读取选中</span>
+      </button>
+
+      <!-- Quick Format Selector + Primary Export Action -->
+      <div class="export-action-group">
+        <select id="quickFormatSelect" class="form-control quick-format-select" title="Export Format">
+          <option value="pdf" data-i18n="ui.format_pdf">PDF 多页文档 (.pdf)</option>
+          <option value="png" data-i18n="ui.format_png">PNG 无损图片 (.png)</option>
+          <option value="jpeg" data-i18n="ui.format_jpeg">JPEG 高清图片 (.jpg)</option>
+          <option value="webp" data-i18n="ui.format_webp">WebP 现代图像 (.webp)</option>
+        </select>
+        <button id="btnExport" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span id="btnExportLabel" data-i18n="ui.export_pdf">导出 PDF</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="app-workspace">
+    <!-- Left Settings Sidebar -->
+    <aside class="settings-sidebar">
+      <nav class="tabs-nav">
+        <button class="tab-btn active" data-tab="tabLayout">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="9" y1="21" x2="9" y2="9"></line>
+          </svg>
+          <span data-i18n="ui.tab_layout">布局纸张</span>
+        </button>
+        <button class="tab-btn" data-tab="tabStyle">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+            <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+            <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+            <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+          </svg>
+          <span data-i18n="ui.tab_style">边距样式</span>
+        </button>
+        <button class="tab-btn" data-tab="tabExport">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="12" y1="18" x2="12" y2="12"></line>
+            <polyline points="9 15 12 18 15 15"></polyline>
+          </svg>
+          <span data-i18n="ui.tab_export">导出设置</span>
+        </button>
+        <button class="tab-btn" data-tab="tabImages">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <span data-i18n="ui.tab_images">图片列表</span>
+          <span id="tabImagesCount" class="tab-badge">0</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-content">
+        <!-- ==================== TAB 1: LAYOUT & PAPER ==================== -->
+        <div id="tabLayout" class="tab-pane active">
+          <!-- Visual Layout Mode Cards -->
+          <div class="setting-section">
+            <div class="section-title" data-i18n="ui.layout_mode">排版模式</div>
+            <div class="mode-cards-grid">
+              <button id="modeJustified" class="mode-card active" type="button">
+                <div class="mode-card-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="3" width="10" height="8" rx="1.5"></rect>
+                    <rect x="15" y="3" width="6" height="8" rx="1.5"></rect>
+                    <rect x="3" y="13" width="5" height="8" rx="1.5"></rect>
+                    <rect x="10" y="13" width="5" height="8" rx="1.5"></rect>
+                    <rect x="17" y="13" width="4" height="8" rx="1.5"></rect>
+                  </svg>
+                </div>
+                <div class="mode-card-text">
+                  <span class="mode-card-title" data-i18n="ui.mode_justified">智能画册</span>
+                  <span class="mode-card-desc" data-i18n="ui.mode_justified_desc">保持原图比例同行等高</span>
+                </div>
+              </button>
+
+              <button id="modeGrid" class="mode-card" type="button">
+                <div class="mode-card-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="3" width="8" height="8" rx="1.5"></rect>
+                    <rect x="13" y="3" width="8" height="8" rx="1.5"></rect>
+                    <rect x="3" y="13" width="8" height="8" rx="1.5"></rect>
+                    <rect x="13" y="13" width="8" height="8" rx="1.5"></rect>
+                  </svg>
+                </div>
+                <div class="mode-card-text">
+                  <span class="mode-card-title" data-i18n="ui.mode_grid">等分网格</span>
+                  <span class="mode-card-desc" data-i18n="ui.mode_grid_desc">规整行列宫格对齐</span>
+                </div>
+              </button>
+
+              <button id="modeStitch" class="mode-card" type="button">
+                <div class="mode-card-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="5" y="2" width="14" height="6" rx="1.2"></rect>
+                    <rect x="5" y="9" width="14" height="6" rx="1.2"></rect>
+                    <rect x="5" y="16" width="14" height="6" rx="1.2"></rect>
+                  </svg>
+                </div>
+                <div class="mode-card-text">
+                  <span class="mode-card-title" data-i18n="ui.mode_stitch">长图拼接</span>
+                  <span class="mode-card-desc" data-i18n="ui.mode_stitch_desc">无缝纵向/横向长卷</span>
+                </div>
+              </button>
+
+              <button id="modeSingle" class="mode-card" type="button">
+                <div class="mode-card-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="4" y="3" width="16" height="18" rx="2"></rect>
+                    <circle cx="9.5" cy="9" r="1.5"></circle>
+                    <path d="M20 16l-4.5-4.5L7 20"></path>
+                  </svg>
+                </div>
+                <div class="mode-card-text">
+                  <span class="mode-card-title" data-i18n="ui.mode_single">单图单页</span>
+                  <span class="mode-card-desc" data-i18n="ui.mode_single_desc">每页独立展示单张</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 1A. Justified Album Options -->
+          <div id="justifiedSection" class="setting-section">
+            <div class="section-title" data-i18n="ui.justified_section">智能画册参数</div>
+            <div class="form-group">
+              <span class="form-label" data-i18n="ui.row_density">每行张数节奏</span>
+              <select id="densitySelect" class="form-control">
+                <option value="fit_page" selected data-i18n="ui.pattern_fit_page">整页自适应均衡分配</option>
+                <option value="auto_23" data-i18n="ui.pattern_auto_23">经典画册节奏 (2, 3, 3, 2 循环)</option>
+                <option value="auto_34" data-i18n="ui.pattern_auto_34">紧凑画册节奏 (3, 4, 3, 4 循环)</option>
+                <option value="auto_12" data-i18n="ui.pattern_auto_12">宽松杂志节奏 (1, 2, 2, 1 循环)</option>
+                <option value="fixed_1" data-i18n="ui.pattern_fixed_1">固定每行 1 张 (宽幅)</option>
+                <option value="fixed_2" data-i18n="ui.pattern_fixed_2">固定每行 2 张</option>
+                <option value="fixed_3" data-i18n="ui.pattern_fixed_3">固定每行 3 张</option>
+                <option value="fixed_4" data-i18n="ui.pattern_fixed_4">固定每行 4 张</option>
+                <option value="fixed_5" data-i18n="ui.pattern_fixed_5">固定每行 5 张</option>
+              </select>
+            </div>
+            <div class="input-grid-2">
+              <div class="form-group">
+                <span class="form-label" data-i18n="ui.rows_per_page">每页最大行数</span>
+                <select id="rowsPerPageSelect" class="form-control">
+                  <option value="2" data-i18n="ui.rows_2">2 行 / 页</option>
+                  <option value="3" data-i18n="ui.rows_3">3 行 / 页</option>
+                  <option value="4" selected data-i18n="ui.rows_auto">默认 (4 行/页)</option>
+                  <option value="5" data-i18n="ui.rows_5">5 行 / 页</option>
+                  <option value="6" data-i18n="ui.rows_6">6 行 / 页</option>
+                  <option value="8" data-i18n="ui.rows_8">8 行 / 页</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <span class="form-label" data-i18n="ui.page_fit_mode">纵向版心对齐</span>
+                <select id="pageFitSelect" class="form-control">
+                  <option value="fit_height" selected data-i18n="ui.fit_page_height">自动铺满整页高度 (推荐)</option>
+                  <option value="natural" data-i18n="ui.fit_page_natural">保持自然高度 (垂直居中)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- 1B. Uniform Grid Options -->
+          <div id="gridSection" class="setting-section" style="display: none;">
+            <div class="section-title" data-i18n="ui.grid_layout">网格行列设置</div>
+            <div class="form-group">
+              <span class="form-label" data-i18n="ui.grid_preset">常用网格预设</span>
+              <select id="gridPresetSelect" class="form-control">
+                <option value="1x1" data-i18n="ui.grid_preset_1x1">1 × 1 (单图)</option>
+                <option value="1x2" data-i18n="ui.grid_preset_1x2">1 列 × 2 行 (上下 2 图)</option>
+                <option value="2x1" data-i18n="ui.grid_preset_2x1">2 列 × 1 行 (左右 2 图)</option>
+                <option value="2x2" selected data-i18n="ui.grid_preset_2x2">2 × 2 (四宫格)</option>
+                <option value="2x3" data-i18n="ui.grid_preset_2x3">2 列 × 3 行 (六宫格)</option>
+                <option value="3x2" data-i18n="ui.grid_preset_3x2">3 列 × 2 行 (横六宫格)</option>
+                <option value="3x3" data-i18n="ui.grid_preset_3x3">3 × 3 (九宫格)</option>
+                <option value="3x4" data-i18n="ui.grid_preset_3x4">3 列 × 4 行 (十二宫格)</option>
+                <option value="4x4" data-i18n="ui.grid_preset_4x4">4 × 4 (十六宫格)</option>
+                <option value="custom" data-i18n="ui.grid_custom">自定义行列...</option>
+              </select>
+            </div>
+            <div id="gridCustomInputs" class="input-grid-2" style="display: none;">
+              <div class="input-with-label">
+                <span data-i18n="ui.cols">列数</span>
+                <input id="inputCols" type="number" class="form-control" min="1" max="12" value="2" />
+              </div>
+              <div class="input-with-label">
+                <span data-i18n="ui.rows">行数</span>
+                <input id="inputRows" type="number" class="form-control" min="1" max="12" value="2" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 1C. Long Stitch Options -->
+          <div id="stitchSection" class="setting-section" style="display: none;">
+            <div class="section-title" data-i18n="ui.stitch_section">长图拼接设置</div>
+            <div class="form-group">
+              <span class="form-label" data-i18n="ui.stitch_direction">拼接方向</span>
+              <div class="segmented-control">
+                <button type="button" class="seg-item active" data-stitch-dir="vertical" data-i18n="ui.stitch_vertical">纵向长图 (从上往下)</button>
+                <button type="button" class="seg-item" data-stitch-dir="horizontal" data-i18n="ui.stitch_horizontal">横向长卷 (从左往右)</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="form-row">
+                <span class="form-label" data-i18n="ui.stitch_base_size">基准边尺寸 (mm)</span>
+                <span id="stitchBaseVal" class="range-val">210 mm</span>
+              </div>
+              <input id="inputStitchBase" type="range" min="100" max="600" step="10" value="210" />
+            </div>
+          </div>
+
+          <!-- Paper & Orientation -->
+          <div id="paperSection" class="setting-section">
+            <div class="section-title" data-i18n="ui.paper_size">纸张与画布规格</div>
+            <div class="form-group">
+              <select id="paperSizeSelect" class="form-control">
+                <option value="A4" selected>A4 (210 × 297 mm)</option>
+                <option value="A3">A3 (297 × 420 mm)</option>
+                <option value="A5">A5 (148 × 210 mm)</option>
+                <option value="B5">B5 (176 × 250 mm)</option>
+                <option value="Letter">Letter (215.9 × 279.4 mm)</option>
+                <option value="Legal">Legal (215.9 × 355.6 mm)</option>
+                <option value="Screen16_9" data-i18n="ui.paper_16_9">16:9 宽屏演示 (297 × 167 mm)</option>
+                <option value="Social3_4" data-i18n="ui.paper_3_4">3:4 社交画报 (210 × 280 mm)</option>
+                <option value="Square" data-i18n="ui.paper_1_1">1:1 方形画册 (210 × 210 mm)</option>
+                <option value="fit_image" data-i18n="ui.paper_fit_image">自适应原图尺寸 (单图模式)</option>
+                <option value="custom" data-i18n="ui.paper_custom">自定义尺寸 (mm)</option>
+              </select>
+            </div>
+            <div id="paperCustomInputs" class="input-grid-2" style="display: none;">
+              <div class="input-with-label">
+                <span data-i18n="ui.width_mm">宽度 (mm)</span>
+                <input id="inputCustomWidth" type="number" class="form-control" min="20" max="3000" value="210" />
+              </div>
+              <div class="input-with-label">
+                <span data-i18n="ui.height_mm">高度 (mm)</span>
+                <input id="inputCustomHeight" type="number" class="form-control" min="20" max="3000" value="297" />
+              </div>
+            </div>
+
+            <div id="orientationGroup" class="form-group">
+              <span class="form-label" data-i18n="ui.orientation">纸张方向</span>
+              <div class="segmented-control">
+                <button type="button" class="seg-item active" data-orientation="portrait" data-i18n="ui.portrait">纵向</button>
+                <button type="button" class="seg-item" data-orientation="landscape" data-i18n="ui.landscape">横向</button>
+                <button type="button" class="seg-item" data-orientation="auto" data-i18n="ui.auto_orientation">智能旋转</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-banner">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span data-i18n="ui.click_to_edit_hint">提示：点击预览图可缩放/旋转/滚轮缩放，双击切换留白与裁切，按住拖拽平移构图！</span>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 2: MARGINS & STYLE ==================== -->
+        <div id="tabStyle" class="tab-pane">
+          <!-- Quick Spacing Presets -->
+          <div class="setting-section">
+            <div class="section-header">
+              <div class="section-title" data-i18n="ui.margin_title">页面外边距 (mm)</div>
+              <div class="segmented-control" style="width: 116px;">
+                <button id="marginUniformBtn" type="button" class="seg-item active" data-i18n="ui.margin_uniform">统一</button>
+                <button id="marginIndepBtn" type="button" class="seg-item" data-i18n="ui.margin_independent">独立</button>
+              </div>
+            </div>
+
+            <div class="preset-chips-row">
+              <button type="button" class="chip-btn" data-spacing-preset="zero" data-i18n="ui.preset_zero">无缝贴合</button>
+              <button type="button" class="chip-btn" data-spacing-preset="compact" data-i18n="ui.preset_compact">紧凑</button>
+              <button type="button" class="chip-btn active" data-spacing-preset="standard" data-i18n="ui.preset_standard">标准</button>
+              <button type="button" class="chip-btn" data-spacing-preset="gallery" data-i18n="ui.preset_gallery">画廊留白</button>
+            </div>
+
+            <div id="marginUniformWrap" class="form-group">
+              <div class="form-row">
+                <span class="form-label" data-i18n="ui.margin_all">四周统一边距</span>
+                <span id="marginAllVal" class="range-val">10 mm</span>
+              </div>
+              <input id="inputMarginAll" type="range" min="0" max="60" value="10" />
+            </div>
+
+            <div id="marginIndepWrap" class="form-group" style="display: none;">
+              <div class="form-row">
+                <span class="form-label" data-i18n="ui.margin_top">上边距</span>
+                <span id="marginTopVal" class="range-val">10 mm</span>
+              </div>
+              <input id="inputMarginTop" type="range" min="0" max="60" value="10" />
+
+              <div class="form-row">
+                <span class="form-label" data-i18n="ui.margin_bottom">下边距</span>
+                <span id="marginBottomVal" class="range-val">10 mm</span>
+              </div>
+              <input id="inputMarginBottom" type="range" min="0" max="60" value="10" />
+
+              <div class="form-row">
+                <span class="form-label" data-i18n="ui.margin_left">左边距</span>
+                <span id="marginLeftVal" class="range-val">10 mm</span>
+              </div>
+              <input id="inputMarginLeft" type="range" min="0" max="60" value="10" />
+
+              <div class="form-row">
+                <span class="form-label" data-i18n="ui.margin_right">右边距</span>
+                <span id="marginRightVal" class="range-val">10 mm</span>
+              </div>
+              <input id="inputMarginRight" type="range" min="0" max="60" value="10" />
+            </div>
+
+            <div class="divider-line"></div>
+
+            <div class="form-group">
+              <div class="form-row">
+                <span class="form-label" data-i18n="ui.spacing_h">水平间距</span>
+                <span id="spacingHVal" class="range-val">4 mm</span>
+              </div>
+              <input id="inputSpacingH" type="range" min="0" max="40" value="4" />
+            </div>
+            <div class="form-group">
+              <div class="form-row">
+                <span class="form-label" data-i18n="ui.spacing_v">垂直间距</span>
+                <span id="spacingVVal" class="range-val">4 mm</span>
+              </div>
+              <input id="inputSpacingV" type="range" min="0" max="40" value="4" />
+            </div>
+          </div>
+
+          <!-- Cell Fill, Radius, Border, Shadow -->
+          <div class="setting-section">
+            <div class="section-title" data-i18n="ui.cell_style_title">画面填充与装饰</div>
+
+            <div class="form-row">
+              <span class="form-label" data-i18n="ui.default_fit_mode">全局默认填充</span>
+              <div class="segmented-control" style="width: 150px;">
+                <button id="globalFitContain" type="button" class="seg-item active" data-i18n="ui.fit_contain">完整留白</button>
+                <button id="globalFitCover" type="button" class="seg-item" data-i18n="ui.fit_cover">填满裁切</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="form-row">
+                <span class="form-label" data-i18n="ui.scale_title">格内画面缩放</span>
+                <span id="scaleValText" class="range-val">100%</span>
+              </div>
+              <input id="scaleRange" type="range" min="40" max="100" value="100" />
+            </div>
+
+            <div class="form-group">
+              <div class="form-row">
+                <span class="form-label" data-i18n="ui.border_radius">图片圆角</span>
+                <span id="radiusValText" class="range-val">0 mm</span>
+              </div>
+              <input id="inputRadius" type="range" min="0" max="20" step="0.5" value="0" />
+            </div>
+
+            <div class="form-group">
+              <div class="form-row">
+                <span class="form-label" data-i18n="ui.image_border">图片描边宽度</span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <input id="inputBorderColor" type="color" value="#334155" class="color-mini-Input" title="Border Color" />
+                  <span id="borderWidthValText" class="range-val">0 mm</span>
+                </div>
+              </div>
+              <input id="inputBorderWidth" type="range" min="0" max="5" step="0.2" value="0" />
+            </div>
+
+            <div class="switch-row">
+              <span class="form-label" data-i18n="ui.image_shadow">立体投影效果</span>
+              <label class="toggle-switch">
+                <input id="chkShadow" type="checkbox" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="switch-row">
+              <span class="form-label" data-i18n="ui.show_caption">显示图片名称标注</span>
+              <label class="toggle-switch">
+                <input id="chkCaption" type="checkbox" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Background & Page Header/Footer -->
+          <div class="setting-section">
+            <div class="section-title" data-i18n="ui.bg_And_deco_title">页面背景与页眉页脚</div>
+            <div class="form-group">
+              <span class="form-label" data-i18n="ui.bg_color">背景颜色</span>
+              <div class="color-swatch-group">
+                <button type="button" class="swatch-btn active" data-bg="#ffffff" style="background: #ffffff;" data-i18n-title="ui.bg_white"></button>
+                <button type="button" class="swatch-btn" data-bg="#f8f5f0" style="background: #f8f5f0;" data-i18n-title="ui.bg_paper"></button>
+                <button type="button" class="swatch-btn" data-bg="#e5e7eb" style="background: #e5e7eb;" data-i18n-title="ui.bg_gray"></button>
+                <button type="button" class="swatch-btn" data-bg="#181818" style="background: #181818;" data-i18n-title="ui.bg_black"></button>
+                <button type="button" class="swatch-btn swatch-transparent" data-bg="transparent" data-i18n-title="ui.bg_transparent"></button>
+                <label class="swatch-custom-wrap" data-i18n-title="ui.bg_custom">
+                  <input id="customBgPicker" type="color" value="#2b303c" />
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <span class="form-label" data-i18n="ui.header_text">页眉标题 (可选)</span>
+              <input id="inputHeaderText" type="text" class="form-control" data-i18n-placeholder="ui.header_placeholder" placeholder="输入画册或作品集标题..." />
+            </div>
+
+            <div class="switch-row">
+              <span class="form-label" data-i18n="ui.show_page_number">底部显示页码</span>
+              <label class="toggle-switch">
+                <input id="chkPageNumber" type="checkbox" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 3: EXPORT & QUALITY ==================== -->
+        <div id="tabExport" class="tab-pane">
+          <!-- Export Format Selection Cards -->
+          <div class="setting-section">
+            <div class="section-title" data-i18n="ui.export_format_title">导出目标格式</div>
+            <div class="format-cards-list">
+              <button type="button" class="format-card active" data-format="pdf">
+                <div class="format-badge pdf">PDF</div>
+                <div class="format-card-info">
+                  <span class="format-card-name" data-i18n="ui.format_pdf">PDF 多页文档 (.pdf)</span>
+                </div>
+              </button>
+              <button type="button" class="format-card" data-format="png">
+                <div class="format-badge png">PNG</div>
+                <div class="format-card-info">
+                  <span class="format-card-name" data-i18n="ui.format_png">PNG 无损图片 (.png)</span>
+                </div>
+              </button>
+              <button type="button" class="format-card" data-format="jpeg">
+                <div class="format-badge jpg">JPG</div>
+                <div class="format-card-info">
+                  <span class="format-card-name" data-i18n="ui.format_jpeg">JPEG 高清图片 (.jpg)</span>
+                </div>
+              </button>
+              <button type="button" class="format-card" data-format="webp">
+                <div class="format-badge webp">WEBP</div>
+                <div class="format-card-info">
+                  <span class="format-card-name" data-i18n="ui.format_webp">WebP 现代图像 (.webp)</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Multi-page Image Output Mode (Only visible for PNG/JPEG/WebP) -->
+          <div id="imageExportModeSection" class="setting-section" style="display: none;">
+            <div class="section-title" data-i18n="ui.image_export_mode">多页图片导出方式</div>
+            <div class="segmented-control">
+              <button type="button" class="seg-item active" data-img-export-mode="pages" data-i18n="ui.img_mode_pages">分页独立导出 (每页一张图)</button>
+              <button type="button" class="seg-item" data-img-export-mode="merge" data-i18n="ui.img_mode_merge">多页合并为单张长图</button>
+            </div>
+          </div>
+
+          <!-- Output Resolution (DPI) -->
+          <div class="setting-section">
+            <div class="section-header">
+              <div class="section-title" data-i18n="ui.dpi_title">输出分辨率 (DPI)</div>
+              <span id="exportPixelEstimate" class="pixel-est-badge">1240 × 1754 px</span>
+            </div>
+            <div class="form-group">
+              <select id="dpiSelect" class="form-control">
+                <option value="72" data-i18n="ui.dpi_72">72 DPI (屏幕快速预览)</option>
+                <option value="150" selected data-i18n="ui.dpi_150">150 DPI (高清标准 · 推荐)</option>
+                <option value="300" data-i18n="ui.dpi_300">300 DPI (印刷级超清画质)</option>
+                <option value="450" data-i18n="ui.dpi_450">450 DPI (极致典藏超采样)</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-top: 6px;">
+              <span class="form-label" data-i18n="ui.quality_title">编码画质与压缩</span>
+              <select id="qualitySelect" class="form-control">
+                <option value="high" selected data-i18n="ui.quality_high">极高画质 (95%)</option>
+                <option value="medium" data-i18n="ui.quality_medium">标准平衡 (85%)</option>
+                <option value="low" data-i18n="ui.quality_low">轻量体积 (72%)</option>
+                <option value="png" data-i18n="ui.quality_lossless">无损画质 (100%)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 4: IMAGE LIST ==================== -->
+        <div id="tabImages" class="tab-pane">
+          <div class="images-list-toolbar">
+            <div class="form-row">
+              <span class="form-label" data-i18n="ui.sort_by">排列顺序</span>
+              <select id="sortSelect" class="form-control images-sort-select">
+                <option value="default" selected data-i18n="ui.sort_default">Eagle 选中原序</option>
+                <option value="name_asc" data-i18n="ui.sort_name_asc">文件名 A → Z</option>
+                <option value="name_desc" data-i18n="ui.sort_name_desc">文件名 Z → A</option>
+                <option value="ratio_asc" data-i18n="ui.sort_ratio_asc">宽高比 (竖图优先)</option>
+                <option value="ratio_desc" data-i18n="ui.sort_ratio_desc">宽高比 (横图优先)</option>
+                <option value="reverse" data-i18n="ui.sort_reverse">反转当前顺序</option>
+              </select>
+            </div>
+            <div class="images-sub-actions">
+              <span class="hint-text" data-i18n="ui.drag_sort_hint">可上下拖拽卡片调整顺序，点击卡片定位页面</span>
+              <button id="btnResetAllEdits" type="button" class="btn btn-default btn-sm" data-i18n="ui.reset_all_edits">重置所有单图微调</button>
+            </div>
+          </div>
+
+          <div id="imagesScrollContainer" class="images-scroll-container">
+            <!-- Dynamic draggable image cards -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Sticky Bottom Quick Export Bar -->
+      <div class="sidebar-footer">
+        <div class="footer-meta">
+          <span id="footerFormatBadge" class="footer-badge">PDF</span>
+          <span id="footerResolutionText" class="footer-res-text">A4 · 150 DPI</span>
+        </div>
+        <button id="btnSidebarExport" type="button" class="btn btn-primary btn-block">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span id="btnSidebarExportLabel" data-i18n="ui.export_pdf">导出 PDF</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Right Live Preview Section -->
+    <section class="preview-container">
+      <!-- Top Preview Toolbar -->
+      <div class="preview-toolbar">
+        <div class="preview-pager">
+          <div class="segmented-control view-mode-toggle">
+            <button id="btnViewSingle" type="button" class="seg-item active" data-i18n="ui.view_single">单页精修</button>
+            <button id="btnViewOverview" type="button" class="seg-item" data-i18n="ui.view_overview">多页总览</button>
+          </div>
+
+          <div id="singlePagerWrap" class="pager-buttons-wrap">
+            <button id="btnPrevPage" class="btn btn-default btn-sm btn-icon" data-i18n-title="ui.prev_page">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+            <span id="pageIndicatorText" class="page-indicator-text">第 1 / 1 页</span>
+            <button id="btnNextPage" class="btn btn-default btn-sm btn-icon" data-i18n-title="ui.next_page">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+          <span id="paperInfoBadge" class="paper-info-badge">210 × 297 mm</span>
+        </div>
+
+        <div id="previewZoomControls" class="preview-controls">
+          <button id="btnZoomOut" class="btn btn-default btn-sm btn-icon" title="Zoom Out">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+          </button>
+          <span id="zoomPercentText" class="zoom-percent-text">100%</span>
+          <button id="btnZoomIn" class="btn btn-default btn-sm btn-icon" title="Zoom In">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="11" y1="8" x2="11" y2="14"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+          </button>
+          <button id="btnZoomFit" class="btn btn-default btn-sm" data-i18n="ui.zoom_fit">适应窗口</button>
+        </div>
+      </div>
+
+      <!-- Center Canvas Viewport -->
+      <div id="previewViewport" class="preview-viewport">
+        <!-- Single Page Interactive Canvas -->
+        <div id="singlePageWrapper" class="pdf-sheet-wrapper">
+          <div id="pdfSheet" class="pdf-page-sheet">
+            <canvas id="previewCanvas"></canvas>
+            <div id="imageHoverOverlay" class="image-hover-overlay"></div>
+            <div id="imageSelectionOverlay" class="image-selection-overlay"></div>
+          </div>
+        </div>
+
+        <!-- Multi-Page Grid Overview Container -->
+        <div id="overviewGridContainer" class="overview-grid-container" style="display: none;"></div>
+
+        <!-- Floating Toolbar for Selected Single Image Adjustment -->
+        <div id="singleEditBar" class="single-edit-floating-bar">
+          <div id="singleItemTitle" class="floating-item-title" title="Image">Photo</div>
+
+          <div class="floating-control-group">
+            <span class="floating-label" data-i18n="ui.single_scale">缩放</span>
+            <input id="singleScaleRange" type="range" min="40" max="300" value="100" style="width: 76px;" />
+            <span id="singleScaleVal" class="range-val" style="min-width: 36px;">100%</span>
+          </div>
+
+          <div class="floating-control-group">
+            <div class="segmented-control" style="width: 112px;">
+              <button id="btnFitContain" type="button" class="seg-item active" data-i18n="ui.fit_contain">留白</button>
+              <button id="btnFitCover" type="button" class="seg-item" data-i18n="ui.fit_cover">裁切</button>
+            </div>
+          </div>
+
+          <div class="floating-control-group">
+            <button id="btnRotateItem" type="button" class="btn btn-default btn-sm btn-icon" data-i18n-title="ui.single_rotate" title="Rotate 90°">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+            </button>
+            <button id="btnFlipItem" type="button" class="btn btn-default btn-sm btn-icon" data-i18n-title="ui.single_flip_h" title="Flip Horizontal">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="17 1 21 5 17 9"></polyline>
+                <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                <polyline points="7 23 3 19 7 15"></polyline>
+                <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+              </svg>
+            </button>
+            <button id="btnMovePrevItem" type="button" class="btn btn-default btn-sm btn-icon" data-i18n-title="ui.single_move_prev" title="Move Earlier">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+            <button id="btnMoveNextItem" type="button" class="btn btn-default btn-sm btn-icon" data-i18n-title="ui.single_move_next" title="Move Later">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+            <button id="btnResetItem" type="button" class="btn btn-default btn-sm" data-i18n="ui.single_reset">重置</button>
+            <button id="btnCloseSingleEdit" type="button" class="btn btn-primary btn-sm" data-i18n="ui.single_done">完成</button>
+          </div>
+        </div>
+
+        <!-- Empty State Overlay -->
+        <div id="emptyState" class="empty-placeholder" style="display: none;">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <div class="empty-title" data-i18n="ui.empty_title">未选中任何图片</div>
+          <div class="empty-desc" data-i18n="ui.empty_desc">请先在 Eagle 资源库中选中一张或多张图片，然后点击上方「读取选中」按钮。</div>
+        </div>
+      </div>
+
+      <!-- Bottom Quick Page Strip -->
+      <div id="pageThumbStrip" class="page-thumb-strip"></div>
+    </section>
+  </main>
+
+  <!-- Progress Modal -->
+  <div id="progressModal" class="modal-overlay">
+    <div class="modal-card">
+      <div id="progressModalTitle" class="modal-title" data-i18n="ui.exporting">正在渲染导出...</div>
+      <div class="progress-bar-container">
+        <div id="progressFill" class="progress-bar-fill"></div>
+      </div>
+      <div id="progressText" class="hint-text">正在处理第 1 / 1 页</div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-with-icon">
+          <span class="success-icon-badge">✓</span>
+          <span id="successModalTitle" class="modal-title" data-i18n="ui.export_success">导出成功！</span>
+        </div>
+      </div>
+      <div class="hint-text" data-i18n="ui.export_success_detail">文件已保存至：</div>
+      <div id="successPathText" class="success-path-box"></div>
+      <div class="modal-actions">
+        <button id="btnRevealFolder" class="btn btn-default" data-i18n="ui.reveal_in_folder">在文件夹中定位</button>
+        <button id="btnOpenFile" class="btn btn-primary" data-i18n="ui.open_file">打开文件</button>
+        <button id="btnCloseSuccess" class="btn btn-default" data-i18n="ui.close">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="libs/jspdf.umd.min.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/plugin.js"></script>
+</body>
+</html>

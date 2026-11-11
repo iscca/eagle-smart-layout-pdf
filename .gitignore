@@ -1,0 +1,23 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Build & package artifacts
+*.eagleplugin
+*.zip
+
+# Dependencies & logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Editor & IDE directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
